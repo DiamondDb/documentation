@@ -2,6 +2,37 @@ DiamondDB
 =========
 DiamondDB is a zero dependency modular database system for Node.js. It consists of three parts: the API, the cache, and the persistence layer. The API (which I usually just call the "database") is the controller of the system: the client interacts directly with this module which in turn communicates with the cache and the persistence layer via a standard set of messages. This makes it easy to switch out the cache or persistence layer with a module of your own. The cache and persistence modules can interface with any other library so long as they implement the message interface.
 
+How to Use
+----------
+Here is an example of how to configure DiamondDB. First install the API, the LevelDB store and the Redis cache:
+```shell
+npm install diamond-db
+npm install diamond-level
+npm install diamond-redis
+```
+Start your Redis server before you continue.
+
+```javascript
+const diamondLevel = require('diamond-level')
+const diamondRedis = require('diamond-redis')
+const diamondDb = require('diamond-db')
+
+const db = new diamondDb.Database({
+  store: new diamondLevel(),
+  cache: new diamondRedis()
+})
+
+/* the init function takes a persist option that can either be an interval
+ * at which the server will persist records or the boolean false to disable
+ * automatic persistence
+ */
+db.init({
+  persist: 5000 // persist every five seconds
+})
+
+diamondDb.server(db)
+```
+
 Message Interface
 ----------------
 The cache and persistence layer have a message method that recieves a message and does some action based on the message. The return value is important: some messages expect a resolves promise, a payload, or nothing. Below is an overview of the message interface expected for the cache and persistence module.
